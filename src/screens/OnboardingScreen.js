@@ -24,7 +24,7 @@ export default function OnboardingScreen({ navigation }) {
       setCurrentPage(currentPage + 1);
     } else {
       await AsyncStorage.setItem('hasOnboarded', 'true'); // Save onboarding completion
-      navigation.replace('Home'); // Navigate to Home
+      navigation.replace('Settings'); // Navigate to Settings
     }
   };
 
