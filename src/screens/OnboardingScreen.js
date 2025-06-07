@@ -13,7 +13,7 @@ const onboardingData = [
   { id: 2,  text: "Detect duplicate files efficiently.", image: logo2 },
   { id: 3,  text: "Save storage and manage files better.", image: logo5 },
   { id: 4,  text: "Fast and secure scanning process.", image: logo4 },
-  { id: 5,  text: "Start exploring MyApp now!", image: logo6 },
+  { id: 5,  text: "Start exploring MyApp now!", image: logo2 },
 ];
 
 export default function OnboardingScreen({ navigation }) {

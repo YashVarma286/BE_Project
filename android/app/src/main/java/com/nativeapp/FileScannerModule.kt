@@ -47,12 +47,20 @@ class FileScannerModule(reactContext: ReactApplicationContext) : ReactContextBas
     }
 
     @ReactMethod
-    fun scanFilesByCategory(category: String, promise: Promise) {
+    fun scanFilesByCategory(category: String, dir: String, promise: Promise) {
         executorService.execute {
             try {
-                val rootDir = Environment.getExternalStorageDirectory()
-                val downDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                val docDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+                // val rootDir = Environment.getExternalStorageDirectory()
+                // val downDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                // val docDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+
+                val dirPath = if (dir.isNotEmpty()) {
+                File(dir)
+                } else {
+                    // fallback – Documents
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                }
+                
                 val ignoredDirs = listOf(
                     "com.", "cn.", ".cache", "cache", ".temp", ".thumbnails", 
                     "MIUI", "LOST.DIR", "Recycle.Bin", "data", "Notifications", 
@@ -77,7 +85,7 @@ class FileScannerModule(reactContext: ReactApplicationContext) : ReactContextBas
                 // Create a single-category map to pass to scanDirectoryReturnPath
                 val singleCategoryMap = mapOf(category to categoryExtensions)
 
-                val filesList = scanDirectoryReturnPath(docDir, ignoredDirs, singleCategoryMap)
+                val filesList = scanDirectoryReturnPath(dirPath, ignoredDirs, singleCategoryMap)
                 promise.resolve(filesList.toString())
             } catch (e: Exception) {
                 promise.reject("SCAN_ERROR", "Error scanning files: ${e.message}")

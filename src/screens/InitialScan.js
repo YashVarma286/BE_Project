@@ -1,4 +1,4 @@
-import { SafeAreaView, StyleSheet, Text, View, Button, NativeModules } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, View, Button, NativeModules, TouchableOpacity } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RNFS from 'react-native-fs';
@@ -6,10 +6,13 @@ import SQLite from 'react-native-sqlite-storage';
 import SSDeepTurboModule from '../../specs/NativeSSDeepModule';
 import ScanProgressUI from '../components/ScanProgressUI';
 import { useNavigation } from '@react-navigation/native';
+import { Picker } from '@react-native-picker/picker';
+
 
 const db = SQLite.openDatabase({ name: 'filehashes.db', location: 'default' });
 
 const { FileScannerModule } = NativeModules;
+const { DirectoryMonitor } = NativeModules;
 
 export default function InitialScan() {
   const [scanBtnText, setScanBtnText] = useState('Start Files Scan');
@@ -28,6 +31,36 @@ export default function InitialScan() {
     image: { totalFiles: 0, duplicates: 0, scanned: 0 },
     video: { totalFiles: 0, duplicates: 0, scanned: 0 },
   });
+  const [availableDirectories, setAvailableDirectories] = useState({});
+  const [selectedDirectory, setSelectedDirectory] = useState('');
+
+  useEffect(() => {
+    const fetchDirectories = async () => {
+      try {
+        const dirsJson = await DirectoryMonitor.getAvailableDirectories(); // Native method
+        const dirs = JSON.parse(dirsJson);
+        setAvailableDirectories(dirs);
+
+        const savedDir = await AsyncStorage.getItem('scanDir');
+        if (savedDir) {
+          setSelectedDirectory(savedDir);
+        } else if (Object.values(dirs).length > 0) {
+          const defaultDir = Object.values(dirs)[0];
+          setSelectedDirectory(defaultDir);
+          await AsyncStorage.setItem('scanDir', defaultDir);
+        }
+      } catch (err) {
+        console.error("Failed to load directories:", err);
+      }
+    };
+
+    fetchDirectories();
+  }, []);
+  const handleDirectoryChange = async (dirPath) => {
+    setSelectedDirectory(dirPath);
+    await AsyncStorage.setItem('scanDir', dirPath);
+  };
+
   const checkFirstLaunch = async () => {
     const isFirstLaunch = await AsyncStorage.getItem('isFirstLaunch');
     if (isFirstLaunch === null) {
@@ -48,13 +81,13 @@ export default function InitialScan() {
     setIsScanning(true);
     // const isFirstLaunch = await checkFirstLaunch();
     // if (isFirstLaunch) {
-      const results = await performInitialScan();
-      console.log("Initial scan completed:", results);
-      insertInitialScanResults(results);
-      // Update button to "Results"
-      setScanBtnText("Results");
-      setScanCompleted(true);
-      await AsyncStorage.setItem('isFirstLaunch', 'false');
+    const results = await performInitialScan();
+    console.log("Initial scan completed:", results);
+    insertInitialScanResults(results);
+    // Update button to "Results"
+    setScanBtnText("Results");
+    setScanCompleted(true);
+    await AsyncStorage.setItem('isFirstLaunch', 'false');
     // }
     setIsScanning(false);
   };
@@ -159,7 +192,7 @@ export default function InitialScan() {
     const hashes = [];
     const duplicates = [];
     for (const file of files) {
-      try { 
+      try {
         // Get file metadata (size, name)
         const fileInfo = await RNFS.stat(file);
         const fileSizeKB = (fileInfo.size / 1024).toFixed(2); // Convert to KB
@@ -207,10 +240,11 @@ export default function InitialScan() {
 
   const performInitialScan = async () => {
     const results = {};
+    const dirPath = await AsyncStorage.getItem('scanDir') || '';     // <- user choice // empty means fallback
     const storedThreshold = await AsyncStorage.getItem('similarityThreshold');
     const threshold = Number(storedThreshold);
     for (const [category, extensions] of Object.entries(fileCategories)) {
-      const categoryFiles = await FileScannerModule.scanFilesByCategory(category);
+      const categoryFiles = await FileScannerModule.scanFilesByCategory(category, dirPath);
       const files = JSON.parse(categoryFiles);
       console.log(files);
       const { hashes, duplicates } = await processFilesInCategory(category, files, extensions, threshold);
@@ -223,7 +257,7 @@ export default function InitialScan() {
       };
       console.log(results)
       // Update UI with progress
-      
+
       await updateProgress(category, files.length, duplicates.length, duplicates);
     }
     return results;
@@ -262,13 +296,64 @@ export default function InitialScan() {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <ScanProgressUI progress={progress} categories={categories} />
-      <Button
-        title={isScanning ? "Scanning..." : scanBtnText}
-        onPress={handleButtonPress}
-        disabled={isScanning}
-      />
+
+      <View style={styles.container}>
+        <View style={styles.card}>
+          <Text style={styles.title}>Choose Directory to Scan:</Text>
+          <Picker
+            selectedValue={selectedDirectory}
+            style={styles.picker}
+            onValueChange={handleDirectoryChange}
+          >
+            {Object.entries(availableDirectories).map(([label, path]) => (
+              <Picker.Item key={label} label={label} value={path} />
+            ))}
+          </Picker>
+        </View>
+        <TouchableOpacity style={styles.startButton} onPress={handleButtonPress} disabled={isScanning}>
+          <Text style={styles.startButtonText}>{isScanning ? "Scanning..." : scanBtnText}</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  container: {
+    padding: 15,
+    backgroundColor: "#f5f5f5", // Light gray background
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 15,
+    color: "#444",
+  },
+  card: {
+    backgroundColor: "#ffffff", // White card background
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3, // Android shadow
+  },
+  picker: {
+    height: 50,
+    width: "100%",
+  },
+  startButton: {
+    backgroundColor: "#007BFF", // Blue button like CCleaner
+    paddingVertical: 12,
+    marginTop: 10,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  startButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+});

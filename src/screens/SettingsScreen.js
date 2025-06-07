@@ -531,7 +531,7 @@ const SettingsScreen = () => {
     truncateInitDb();
     await AsyncStorage.removeItem('isFirstLaunch');
     console.log('First Launch set to False');
-    await AsyncStorage.removeItem('hasOnboarded');
+    // await AsyncStorage.removeItem('hasOnboarded');
   };
 
   return (
@@ -611,7 +611,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 15,
-    backgroundColor: "#f5f5f5", // Light gray background like CCleaner UI
+    backgroundColor: "#f5f5f5", // Light gray background
   },
   heading: {
     fontSize: 22,

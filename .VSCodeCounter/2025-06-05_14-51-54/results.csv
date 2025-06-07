@@ -1,0 +1,20 @@
+"filename", "language", "Groovy", "Java Properties", "CMake", "XML", "C++", "Java", "Log", "Batch", "comment", "blank", "total"
+"c:\Users\Admin\Desktop\DemoApp\android\.kotlin\errors\errors-1748858075378.log", "Log", 0, 0, 0, 0, 0, 0, 63, 0, 0, 3, 66
+"c:\Users\Admin\Desktop\DemoApp\android\app\build.gradle", "Groovy", 52, 0, 0, 0, 0, 0, 0, 0, 61, 12, 125
+"c:\Users\Admin\Desktop\DemoApp\android\app\src\debug\AndroidManifest.xml", "XML", 0, 0, 0, 8, 0, 0, 0, 0, 0, 2, 10
+"c:\Users\Admin\Desktop\DemoApp\android\app\src\main\AndroidManifest.xml", "XML", 0, 0, 0, 43, 0, 0, 0, 0, 1, 3, 47
+"c:\Users\Admin\Desktop\DemoApp\android\app\src\main\java\com\nativeapp\CpuModule.java", "Java", 0, 0, 0, 0, 0, 36, 0, 0, 0, 8, 44
+"c:\Users\Admin\Desktop\DemoApp\android\app\src\main\java\com\nativeapp\DirectoryMonitorModule.java", "Java", 0, 0, 0, 0, 0, 179, 0, 0, 8, 31, 218
+"c:\Users\Admin\Desktop\DemoApp\android\app\src\main\java\com\nativeapp\StorageModule.java", "Java", 0, 0, 0, 0, 0, 101, 0, 0, 3, 19, 123
+"c:\Users\Admin\Desktop\DemoApp\android\app\src\main\jni\CMakeLists.txt", "CMake", 0, 0, 28, 0, 0, 0, 0, 0, 0, 9, 37
+"c:\Users\Admin\Desktop\DemoApp\android\app\src\main\jni\OnLoad.cpp", "C++", 0, 0, 0, 0, 62, 0, 0, 0, 56, 19, 137
+"c:\Users\Admin\Desktop\DemoApp\android\app\src\main\jni\include\fuzzy.h", "C++", 0, 0, 0, 0, 33, 0, 0, 0, 171, 24, 228
+"c:\Users\Admin\Desktop\DemoApp\android\app\src\main\res\drawable\rn_edit_text_material.xml", "XML", 0, 0, 0, 12, 0, 0, 0, 0, 23, 3, 38
+"c:\Users\Admin\Desktop\DemoApp\android\app\src\main\res\values\strings.xml", "XML", 0, 0, 0, 3, 0, 0, 0, 0, 0, 1, 4
+"c:\Users\Admin\Desktop\DemoApp\android\app\src\main\res\values\styles.xml", "XML", 0, 0, 0, 5, 0, 0, 0, 0, 2, 3, 10
+"c:\Users\Admin\Desktop\DemoApp\android\build.gradle", "Groovy", 20, 0, 0, 0, 0, 0, 0, 0, 0, 2, 22
+"c:\Users\Admin\Desktop\DemoApp\android\gradle.properties", "Java Properties", 0, 5, 0, 0, 0, 0, 0, 0, 26, 9, 40
+"c:\Users\Admin\Desktop\DemoApp\android\gradle\wrapper\gradle-wrapper.properties", "Java Properties", 0, 7, 0, 0, 0, 0, 0, 0, 0, 1, 8
+"c:\Users\Admin\Desktop\DemoApp\android\gradlew.bat", "Batch", 0, 0, 0, 0, 0, 0, 0, 41, 32, 22, 95
+"c:\Users\Admin\Desktop\DemoApp\android\settings.gradle", "Groovy", 6, 0, 0, 0, 0, 0, 0, 0, 0, 1, 7
+"Total", "-", 78, 12, 28, 71, 95, 316, 63, 41, 383, 172, 1259
