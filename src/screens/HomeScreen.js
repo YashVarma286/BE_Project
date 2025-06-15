@@ -5,6 +5,7 @@ import CpuUsage from '../components/CpuUsage';
 import StorageStats from '../components/StorageStats';
 import { useNavigation } from '@react-navigation/native';
 import notifee, { EventType } from '@notifee/react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 //import DonutChart from "react-native-donut-chart";
 
 const { FileScannerModule } = NativeModules;
@@ -14,6 +15,21 @@ export default function HomeScreen() {
   const [fileDistribution, setFileDistribution] = useState([]);
   const [isLoading, setisLoading] = useState(false);
 
+  useEffect(() => {
+  const checkPendingNotification = async () => {
+    const rawData = await AsyncStorage.getItem('notificationData');
+    if (rawData) {
+      await AsyncStorage.removeItem('notificationData'); // Clear it
+      const parsedData = JSON.parse(rawData);
+
+      navigation.navigate('NotificationHandler', {
+        fileData: JSON.stringify(parsedData),
+      });
+    }
+  };
+
+  checkPendingNotification();
+}, []);
   const getRandomColor = () => {
     const letters = '0123456789ABCDEF';
     let color = '#';

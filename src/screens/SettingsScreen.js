@@ -236,6 +236,106 @@ const SettingsScreen = () => {
       },
     });
   };
+  useEffect(() => {
+    // Handle background events
+    notifee.onBackgroundEvent(async ({ type, detail }) => {
+      if (type === EventType.ACTION_PRESS) {
+        const { pressAction, notification } = detail; // destructure for convenience
+
+        switch (pressAction.id) {
+          case 'view':
+            console.log('Background – View pressed');
+            navigation.navigate('NotificationHandler', {
+              fileData: JSON.parse(notification.data?.results ?? '[]')[0],
+            });
+            break;
+
+          case 'ignore':
+            console.log('Background – Ignore pressed');
+            if (notification?.id) {
+              await notifee.cancelNotification(notification.id);
+            }
+            break;
+
+          case 'default':
+            console.log('Main notification body tapped');
+            navigation.navigate('NotificationHandler', {
+              fileData: JSON.parse(notification.data?.results ?? '[]')[0],
+            });
+            break;
+
+          default:
+            console.log('Unknown action');
+        }
+      }
+    });
+
+    // Handle foreground events
+    notifee.onForegroundEvent(async ({ type, detail }) => {
+      if (type === EventType.ACTION_PRESS) {
+        const { pressAction, notification } = detail;
+
+        switch (pressAction?.id) {
+          case 'view':
+            console.log('Foreground - View pressed');
+            navigation.navigate('NotificationHandler', {
+              fileData: JSON.parse(notification.data?.results ?? '[]')[0],
+            });
+            break;
+          case 'ignore':
+            console.log('Foreground - Ignore pressed');
+            if (notification?.id) {
+              await notifee.cancelNotification(notification.id);
+            }
+            break;
+          case 'default':
+            console.log('Main notification body tapped');
+            navigation.navigate('NotificationHandler', {
+              fileData: JSON.parse(notification.data?.results ?? '[]')[0],
+            });
+          default:
+            console.log('Unknown action');
+        }
+      }
+    });
+  }, []);
+  const fetchFileInfoByHash = (hash) =>
+    new Promise((resolve, reject) => {
+      db.transaction(tx => {
+        tx.executeSql(
+          `SELECT file_name, file_path, file_size
+           FROM Files_Record
+          WHERE file_hash = ? LIMIT 1`,
+          [hash],
+          (_, res) => {
+            if (res.rows.length) {
+              const row = res.rows.item(0);
+              resolve({
+                name: row.file_name,
+                path: row.file_path,
+                size: row.file_size,
+              });
+            } else {
+              resolve(null);      // not found – shouldn’t happen
+            }
+          },
+          (_, err) => reject(err),
+        );
+      });
+    });
+  const enrichResults = async (rawResults) => {
+    // rawResults = [{ hash, similarity }, …]
+    const enriched = await Promise.all(
+      rawResults.map(async (r) => {
+        const info = await fetchFileInfoByHash(r.hash);
+        return info
+          ? { ...info, similarity: r.similarity, hash: r.hash }
+          : { hash: r.hash, similarity: r.similarity };
+      }),
+    );
+    return enriched;
+  };
+
   const computeAndCompareHash = async (newFilePath) => {
     try {
       // Get file metadata (size, name)
@@ -262,6 +362,7 @@ const SettingsScreen = () => {
       );
       console.log(results);
       if (results.length > 0) {
+        const enriched = await enrichResults(results);
         const similarFilesWithPath = await similarFilesPath(results);
         console.log(similarFilesWithPath);
         Alert.alert(
@@ -271,8 +372,9 @@ const SettingsScreen = () => {
         await displayNotification(
           'Duplicate files detected',
           similarFilesWithPath.length,
-          results
+          enriched,
         );
+        // await AsyncStorage.setItem('notificationData', JSON.stringify(enriched));
         for (const result of results) {
           console.log('In for loop')
           const originalFileHash = result.hash; // Hash of the original file
@@ -531,7 +633,7 @@ const SettingsScreen = () => {
     truncateInitDb();
     await AsyncStorage.removeItem('isFirstLaunch');
     console.log('First Launch set to False');
-    // await AsyncStorage.removeItem('hasOnboarded');
+    await AsyncStorage.removeItem('hasOnboarded');
   };
 
   return (
